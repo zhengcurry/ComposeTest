@@ -1,28 +1,33 @@
 package com.curry.composetest
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.curry.composetest.data.*
 import com.curry.composetest.ui.theme.ComposeTestTheme
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
+import androidx.compose.ui.unit.*
+
 /**
  * @Author: curry
  * @CreateDate: 2021/11/1
@@ -30,13 +35,128 @@ import com.curry.composetest.ui.theme.ComposeTestTheme
  * Jetpack Compose 是一个适用于 Android 的新式声明性界面工具包
  */
 class GameActivity : ComponentActivity() {
+    @ExperimentalStdlibApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ComposeTestTheme {
-
+                Column {
+                    Text(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        text = "华容道",
+                        style = MaterialTheme.typography.h5
+                    )
+                    var chessState: List<ChessBean> by remember {
+                        mutableStateOf(gameOpening.toList())
+                    }
+                    with(LocalDensity.current) {
+                        showChess(
+                            Modifier.weight(1f),
+                            chessList = chessState
+                        ) { cur, x, y -> // onMove回调
+                            chessState = chessState.map { //it: Chess
+                                if (it.name == cur) {
+                                    if (x != 0) it.checkAndMoveX(x, chessState)
+                                    else it.checkAndMoveY(y, chessState)
+                                } else {
+                                    it
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
+    }
+}
+
+/**
+ * 在非Density的Scope下无法调用px.toDp()(比如：100.toDp())
+ * 只能调用px.dp(比如：100.dp)，这2个是有本质区别的。
+ */
+@Composable
+fun Density.showChess(
+    modifier: Modifier = Modifier,
+    chessList: List<ChessBean>,
+    onMove: (chess: String, x: Int, y: Int) -> Unit = { _, _, _ -> }
+) {
+    val scope = rememberCoroutineScope()
+    Box(
+        modifier.fillMaxSize()
+    ) {
+        Box(
+            Modifier
+                .background(MaterialTheme.colors.secondary.copy(alpha = 0.2f))
+                .padding(10.dp)
+                .width(boardWidth.toDp())
+                .height(boardHeight.toDp())
+                .background(MaterialTheme.colors.secondary)
+                .align(Alignment.Center)
+        ) {
+
+            chessList.forEach { chess ->
+                Box( modifier = Modifier.width(chess.width.toDp())
+                    .height(chess.height.toDp())) {
+                    Text(chess.name)
+                    Image(
+                        modifier = Modifier
+                            .offset { chess.offset }
+                            .width(chess.width.toDp())
+                            .height(chess.height.toDp())
+                            .border(1.dp, Color.Black)
+                            .background(chess.color)
+                            .draggable(
+                                orientation = Orientation.Horizontal,
+                                state = rememberDraggableState(onDelta = {
+                                    onMove(chess.name, it.roundToInt(), 0)
+                                })
+                            )
+                            .pointerInput(Unit) {
+                                scope.launch {//demonstrate detectDragGestures
+                                    detectVerticalDragGestures { change, dragAmount ->
+                                        change.consumeAllChanges()
+                                        onMove(chess.name, 0, dragAmount.roundToInt())
+                                    }
+                                }
+
+                            }
+//                            .draggable(
+//                                orientation = Orientation.Vertical,
+//                                state = rememberDraggableState(onDelta = {
+//                                    onMove(chess.name, 0, it.roundToInt())
+//                                })
+//                            )
+                        /*.pointerInput(Unit) {
+                            scope.launch {//监听水平拖拽
+                                detectHorizontalDragGestures { change, dragAmount ->
+                                    change.consumeAllChanges()
+                                    onMove(chess.name, 0, dragAmount.roundToInt())
+                                }
+                            }
+                            scope.launch {//监听垂直拖拽
+                                detectVerticalDragGestures { change, dragAmount ->
+                                    change.consumeAllChanges()
+                                    onMove(chess.name, 0, dragAmount.roundToInt())
+                                }
+                            }
+                        }*/,
+                        painter = painterResource(id = chess.drawable),
+                        contentDescription = chess.name
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@ExperimentalStdlibApi
+@Preview
+@Composable
+fun preview() {
+    ComposeTestTheme() {
+        Density(2.7f, 1f)
+            .showChess(chessList = gameOpening.toList())
     }
 }

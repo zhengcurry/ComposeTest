@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.curry.composetest.ui.theme.ComposeTestTheme
@@ -91,7 +92,7 @@ fun Greeting(name: String) {
             a = "你好"
         }) {
             Text("I've been clicked $a times")
-            NamePickerItem("    | picker"){ Log.e("curry", "Button: onClick")}
+            NamePickerItem("    | picker") { Log.e("curry", "Button: onClick") }
         }
         Image(
             painter = painterResource(id = R.drawable.ic_launcher_background),
@@ -108,7 +109,13 @@ fun Greeting(name: String) {
             Text(text = "Row2 $name!", style = MaterialTheme.typography.subtitle2)
         }
         Box() {
-            Text(text = "Box1 $name!")
+            Text(
+                text = "Box1 $name!",
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(100.dp),
+                textAlign = TextAlign.Center
+            )
             Text(text = "Box2 $name!", color = MaterialTheme.colors.secondaryVariant)
         }
 
