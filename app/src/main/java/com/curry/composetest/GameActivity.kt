@@ -21,6 +21,7 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.curry.composetest.data.*
 import com.curry.composetest.ui.theme.ComposeTestTheme
@@ -54,6 +55,7 @@ class GameActivity : ComponentActivity() {
                             Modifier.weight(1f),
                             chessList = chessState
                         ) { cur, x, y -> // onMove回调
+                            //更新状态，刷新UI
                             chessState = chessState.map { //it: Chess
                                 if (it.name == cur) {
                                     if (x != 0) it.checkAndMoveX(x, chessState)
@@ -96,25 +98,29 @@ fun Density.showChess(
         ) {
 
             chessList.forEach { chess ->
-                Box( modifier = Modifier.width(chess.width.toDp())
-                    .height(chess.height.toDp())) {
-                    Text(chess.name)
+                Box(
+                    modifier = Modifier
+                        .offset { chess.offset }
+                        .width(chess.width.toDp())
+                        .height(chess.height.toDp())
+                ) {
                     Image(
                         modifier = Modifier
-                            .offset { chess.offset }
-                            .width(chess.width.toDp())
-                            .height(chess.height.toDp())
+                            .fillMaxSize()
                             .border(1.dp, Color.Black)
                             .background(chess.color)
+                            //两种监听拖拽的写法 .draggable 、 .pointerInput
                             .draggable(
                                 orientation = Orientation.Horizontal,
                                 state = rememberDraggableState(onDelta = {
+                                    //水平移动的距离，进行回调
                                     onMove(chess.name, it.roundToInt(), 0)
                                 })
                             )
                             .pointerInput(Unit) {
                                 scope.launch {//demonstrate detectDragGestures
                                     detectVerticalDragGestures { change, dragAmount ->
+                                        //垂直移动监听，进行回调
                                         change.consumeAllChanges()
                                         onMove(chess.name, 0, dragAmount.roundToInt())
                                     }
@@ -143,6 +149,10 @@ fun Density.showChess(
                         }*/,
                         painter = painterResource(id = chess.drawable),
                         contentDescription = chess.name
+                    )
+                    Text(
+                        chess.name, color = Color.White, textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

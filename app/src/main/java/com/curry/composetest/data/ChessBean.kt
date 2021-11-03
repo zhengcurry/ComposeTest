@@ -1,5 +1,6 @@
 package com.curry.composetest.data
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import com.curry.composetest.R
@@ -23,17 +24,17 @@ data class ChessBean(
 )
 
 
-val cao: ChessBean = ChessBean("曹操", 2, 2, R.drawable.ic_launcher_foreground,Color.Red)
-val zhang: ChessBean = ChessBean("张飞", 1, 2, R.drawable.ic_launcher_foreground,Color.Blue)
-val zhao: ChessBean = ChessBean("赵云", 1, 2, R.drawable.ic_launcher_foreground,Color.Yellow)
-val huang: ChessBean = ChessBean("黄忠", 1, 2, R.drawable.ic_launcher_foreground,Color.Cyan)
-val ma: ChessBean = ChessBean("马超", 1, 2, R.drawable.ic_launcher_foreground,Color.Green)
-val guan: ChessBean = ChessBean("关羽", 2, 1, R.drawable.ic_launcher_foreground,Color.Magenta)
+val cao: ChessBean = ChessBean("曹操", 2, 2, R.drawable.ic_launcher_foreground, Color.Red)
+val zhang: ChessBean = ChessBean("张飞", 1, 2, R.drawable.ic_launcher_foreground, Color.Blue)
+val zhao: ChessBean = ChessBean("赵云", 1, 2, R.drawable.ic_launcher_foreground, Color.Yellow)
+val huang: ChessBean = ChessBean("黄忠", 1, 2, R.drawable.ic_launcher_foreground, Color.Cyan)
+val ma: ChessBean = ChessBean("马超", 1, 2, R.drawable.ic_launcher_foreground, Color.Green)
+val guan: ChessBean = ChessBean("关羽", 2, 1, R.drawable.ic_launcher_foreground, Color.Magenta)
 
 @ExperimentalStdlibApi
 val bing = buildList {
     repeat(4) {
-        add(ChessBean("兵$it", 1, 1, R.drawable.ic_launcher_foreground,Color.Gray))
+        add(ChessBean("兵$it", 1, 1, R.drawable.ic_launcher_foreground, Color.Gray))
     }
 }
 
@@ -86,7 +87,6 @@ infix fun ChessBean.isBelowOf(other: ChessBean) =
     (top >= other.bottom) && ((left until right) intersect (other.left until other.right)).isNotEmpty()
 
 
-//检测碰撞并移动
 fun ChessBean.checkAndMoveX(x: Int, others: List<ChessBean>): ChessBean {
     others.filter { it.name != name }.forEach { other ->
         if (x > 0 && this isToLeftOf other && right + x >= other.left)
@@ -99,12 +99,21 @@ fun ChessBean.checkAndMoveX(x: Int, others: List<ChessBean>): ChessBean {
 }
 
 fun ChessBean.checkAndMoveY(y: Int, others: List<ChessBean>): ChessBean {
-    others.filter { it.name != name }.forEach { other ->
-        if (y > 0 && this isAboveOf other && bottom + y >= other.top)
+    others.filter {
+        Log.i("checkAndMoveY", "checkAndMoveY: ${it.name}, $name")
+        it.name != name
+    }.forEach { other ->
+        Log.i("checkAndMoveY", "y:$y, other.name: ${other.name} ,other.top: ${other.top}, $bottom")
+        if (y > 0 && this isAboveOf other && bottom + y >= other.top) {
+            Log.e("checkAndMoveY", "isAboveOf")
+            //棋子向下拖动，y>0
+            //移动的棋子要在其他的上方（底边距小于等于其他的高且在左右范围内）
+            //移动棋子底边距+偏移量大于等于其他的高
             return moveByY(other.top - bottom)
-        else if (y < 0 && this isBelowOf other && top + y <= other.bottom)
-            if (top + y <= other.bottom) return moveByY(other.bottom - top)
+        } else if (y < 0 && this isBelowOf other && top + y <= other.bottom)
+            return moveByY(other.bottom - top)
     }
+    Log.e("checkAndMoveY", "last")
     return if (y > 0) moveByY(min(y, boardHeight - bottom)) else moveByY(max(y, 0 - top))
 }
 
