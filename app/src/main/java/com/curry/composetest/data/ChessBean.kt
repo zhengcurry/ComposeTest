@@ -45,14 +45,21 @@ typealias ChessOpening = List<Triple<ChessBean, Int, Int>>
  */
 @ExperimentalStdlibApi
 val gameOpening: ChessOpening = buildList {
-    add(Triple(zhang, 0, 0)); add(Triple(cao, 1, 0))
-    add(Triple(zhao, 3, 0)); add(Triple(huang, 0, 2))
-    add(Triple(ma, 3, 2)); add(Triple(guan, 1, 2))
-    add(Triple(bing[0], 0, 4)); add(Triple(bing[1], 1, 3))
-    add(Triple(bing[2], 2, 3)); add(Triple(bing[3], 3, 4))
+    add(Triple(zhang, 0, 0))
+    add(Triple(cao, 1, 0))
+    add(Triple(zhao, 3, 0))
+    add(Triple(huang, 0, 2))
+    add(Triple(ma, 3, 2))
+    add(Triple(guan, 1, 2))
+    add(Triple(bing[0], 0, 4))
+    add(Triple(bing[1], 1, 3))
+    add(Triple(bing[2], 2, 3))
+    add(Triple(bing[3], 3, 4))
 }
 
-
+/**
+ * 棋盘大小
+ */
 const val boardGridPx = 200
 const val boardWidth = boardGridPx * 4
 const val boardHeight = boardGridPx * 5
@@ -99,13 +106,21 @@ fun ChessBean.checkAndMoveX(x: Int, others: List<ChessBean>): ChessBean {
 }
 
 fun ChessBean.checkAndMoveY(y: Int, others: List<ChessBean>): ChessBean {
+    //成功后，曹操棋子可以移出！
+    if (name == "曹操") {
+        Log.e("checkAndMoveY", "曹操: ${boardHeight}, $bottom")
+        if (y > 0 && boardHeight - bottom <= 0) {
+            return moveByY(y)
+        }
+    }
+
     others.filter {
-        Log.i("checkAndMoveY", "checkAndMoveY: ${it.name}, $name")
+        Log.d("checkAndMoveY", "checkAndMoveY: ${it.name}, $name")
         it.name != name
     }.forEach { other ->
-        Log.i("checkAndMoveY", "y:$y, other.name: ${other.name} ,other.top: ${other.top}, $bottom")
+        Log.d("checkAndMoveY", "y:$y, other.name: ${other.name} ,other.top: ${other.top}, $bottom")
         if (y > 0 && this isAboveOf other && bottom + y >= other.top) {
-            Log.e("checkAndMoveY", "isAboveOf")
+            Log.d("checkAndMoveY", "isAboveOf")
             //棋子向下拖动，y>0
             //移动的棋子要在其他的上方（底边距小于等于其他的高且在左右范围内）
             //移动棋子底边距+偏移量大于等于其他的高
@@ -113,7 +128,16 @@ fun ChessBean.checkAndMoveY(y: Int, others: List<ChessBean>): ChessBean {
         } else if (y < 0 && this isBelowOf other && top + y <= other.bottom)
             return moveByY(other.bottom - top)
     }
-    Log.e("checkAndMoveY", "last")
+    Log.d("checkAndMoveY", "last")
+
     return if (y > 0) moveByY(min(y, boardHeight - bottom)) else moveByY(max(y, 0 - top))
 }
 
+var count = 0
+
+/**
+ * 自身高度跟移动距离比较
+ */
+fun count() {
+    count ++
+}

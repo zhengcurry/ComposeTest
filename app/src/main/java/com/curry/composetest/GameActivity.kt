@@ -30,6 +30,14 @@ import kotlin.math.roundToInt
 import androidx.compose.ui.unit.*
 
 /**
+ * 参考：https://juejin.cn/post/7000908871292157989#heading-10
+ *
+ * 1. 界面UI
+ * 2. 滑动监听
+ * 2. 逻辑处理
+ *
+ *
+ *
  * @Author: curry
  * @CreateDate: 2021/11/1
  * @Description: 声明式UI
@@ -44,7 +52,7 @@ class GameActivity : ComponentActivity() {
                 Column {
                     Text(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
-                        text = "华容道",
+                        text = "华容道: $count",
                         style = MaterialTheme.typography.h5
                     )
                     var chessState: List<ChessBean> by remember {
@@ -89,6 +97,7 @@ fun Density.showChess(
     ) {
         Box(
             Modifier
+                //注意padding前后background的调用, 这里是有先后顺序的
                 .background(MaterialTheme.colors.secondary.copy(alpha = 0.2f))
                 .padding(10.dp)
                 .width(boardWidth.toDp())
@@ -109,30 +118,41 @@ fun Density.showChess(
                             .fillMaxSize()
                             .border(1.dp, Color.Black)
                             .background(chess.color)
-                            //两种监听拖拽的写法 .draggable 、 .pointerInput
+                            /**
+                             * 两种监听拖拽的写法 .draggable 、 .pointerInput
+                             * orientation 用来指定监听什么方向的手势：水平或垂直。
+                             * rememberDraggableState保存拖动状态，onDelta 指定手势的回调
+                             */
                             .draggable(
                                 orientation = Orientation.Horizontal,
                                 state = rememberDraggableState(onDelta = {
                                     //水平移动的距离，进行回调
                                     onMove(chess.name, it.roundToInt(), 0)
-                                })
+                                }),
+                                onDragStopped = { count() }
                             )
+                            /**
+                             * 监听任意方向的拖拽呢，可以使用 detectDragGestures
+                             * detectDragGestures 也提供了水平、垂直版本供选择:
+                             * detectHorizontalDragGestures,detectVerticalDragGestures
+                             */
                             .pointerInput(Unit) {
                                 scope.launch {//demonstrate detectDragGestures
-                                    detectVerticalDragGestures { change, dragAmount ->
-                                        //垂直移动监听，进行回调
-                                        change.consumeAllChanges()
-                                        onMove(chess.name, 0, dragAmount.roundToInt())
-                                    }
+                                    detectVerticalDragGestures(
+                                        onDragEnd = { count() },
+                                        onVerticalDrag = { change, dragAmount ->
+                                            //垂直移动监听，进行回调
+                                            change.consumeAllChanges()
+                                            onMove(chess.name, 0, dragAmount.roundToInt())
+                                        })
                                 }
-
                             }
-//                            .draggable(
-//                                orientation = Orientation.Vertical,
-//                                state = rememberDraggableState(onDelta = {
-//                                    onMove(chess.name, 0, it.roundToInt())
-//                                })
-//                            )
+                        /*.draggable(
+                            orientation = Orientation.Vertical,
+                            state = rememberDraggableState(onDelta = {
+                                onMove(chess.name, 0, it.roundToInt())
+                            })
+                        )*/
                         /*.pointerInput(Unit) {
                             scope.launch {//监听水平拖拽
                                 detectHorizontalDragGestures { change, dragAmount ->
