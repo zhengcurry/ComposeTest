@@ -109,7 +109,7 @@ fun ChessBean.checkAndMoveY(y: Int, others: List<ChessBean>): ChessBean {
     //成功后，曹操棋子可以移出！
     if (name == "曹操") {
         Log.e("checkAndMoveY", "曹操: ${boardHeight}, $bottom")
-        if (y > 0 && boardHeight - bottom <= 0) {
+        if (y > 0 && boardHeight - bottom <= 0 && left == boardGridPx) {
             return moveByY(y)
         }
     }
@@ -135,9 +135,6 @@ fun ChessBean.checkAndMoveY(y: Int, others: List<ChessBean>): ChessBean {
 
 var count = 0
 
-/**
- * 自身高度跟移动距离比较
- */
 fun count() {
-    count ++
+    count++
 }

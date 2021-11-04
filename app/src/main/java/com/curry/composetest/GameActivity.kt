@@ -21,6 +21,7 @@ import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.curry.composetest.data.*
@@ -105,7 +106,17 @@ fun Density.showChess(
                 .background(MaterialTheme.colors.secondary)
                 .align(Alignment.Center)
         ) {
-
+            Text(
+                text = "逃出生天",
+                modifier = Modifier
+                    .offset { IntOffset(boardGridPx, boardHeight) }
+                    .width(boardGridPx * 2.toDp())
+                    .height(50.toDp())
+                    .background(Color.Red),
+                fontStyle = FontStyle.Italic,
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
             chessList.forEach { chess ->
                 Box(
                     modifier = Modifier
